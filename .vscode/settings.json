@@ -1,6 +1,5 @@
 {
-    "cmake.sourceDirectory": "/home/lvaux/workspace/Solar_Tracker/Solar_tracker",
-    "cmake.generator": "Unix Makefiles",
+    "cmake.sourceDirectory": "C:/Users/vaux2/Nextcloud/Documents/Workspace/solar_tracker/Solar_tracker",
     "cmake.configureArgs": [
     ]
 }
