@@ -2,6 +2,5 @@
     "cmake.sourceDirectory": "/home/lvaux/workspace/Solar_Tracker/Solar_tracker",
     "cmake.generator": "Unix Makefiles",
     "cmake.configureArgs": [
-        "-DCMAKE_TOOLCHAIN_FILE=cmake/gcc-arm-none-eabi.cmake"
     ]
 }
