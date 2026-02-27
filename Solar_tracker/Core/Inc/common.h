@@ -3,9 +3,9 @@
 
 #include <stdint.h>
 
-#define NO_ERROR 0
-#define UNDEFINED_ERROR -1
-#define INVALID_PARAMETER -2
+#define ERR_NONE 0
+#define ERR_UNDEFINED -1
+#define ERR_INVALID_PARAM -2
 
 typedef int32_t err_t;
 

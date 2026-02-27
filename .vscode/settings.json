@@ -1,5 +1,6 @@
 {
     "cmake.sourceDirectory": "C:/Users/vaux2/Nextcloud/Documents/Workspace/solar_tracker/Solar_tracker",
     "cmake.configureArgs": [
-    ]
+    ],
+    "cmake.copyCompileCommands": "${workspaceFolder}/compile_commands.json"
 }
