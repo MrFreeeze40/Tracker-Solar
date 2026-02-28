@@ -200,13 +200,29 @@ bool TIM_is_CCx_interrupt_pending(TIM_TypeDef *p_tim, enum TIM_channel_e channel
 /**
  * @brief 
  * 
- * @param p_tim 
- * @param channel 
+ * @param p_tim Pointer to the TIM peripheral instance.
+ *              Valid values: TIM1, TIM2, TIM3, ..., TIMx depending on device.
+ * @param channel The channel number (e.g., TIM_CHANNEL_1, TIM_CHANNEL_2, etc.)
  * @return err_t 
  */
 err_t TIM_clear_CCx_interrupt_flag(TIM_TypeDef *p_tim, enum TIM_channel_e channel);
 
-void TIM_generate_CCx_event(TIM_TypeDef *p_tim, enum TIM_channel_e channel);
+/**
+ * @brief Generate an event on the corresponding CCx channel
+ * 
+ * @param p_tim Pointer to the TIM peripheral instance.
+ *              Valid values: TIM1, TIM2, TIM3, ..., TIMx depending on device.
+ * @param channel The channel number (e.g., TIM_CHANNEL_1, TIM_CHANNEL_2, etc.)
+ * @return err_t 
+ */
+err_t TIM_generate_CCx_event(TIM_TypeDef *p_tim, enum TIM_channel_e channel);
+
+/**
+ * @brief Generate an update event
+ * 
+ * @param p_tim Pointer to the TIM peripheral instance.
+ *              Valid values: TIM1, TIM2, TIM3, ..., TIMx depending on device.
+ */
 void TIM_generate_update_event(TIM_TypeDef *p_tim);
 
 /**
@@ -240,31 +256,101 @@ void TIM_stop(TIM_TypeDef *p_tim);
  * 
  * @param channel channel to set
  */
-void TIM_set_OCx_compared_value(uint8_t channel);
+err_t TIM_set_OCx_compared_value(TIM_TypeDef *p_tim, uint8_t channel, uint32_t value);
 
-void TIM_set_output_compare_polarity(TIM_TypeDef *p_tim);
-void TIM_set_OCxRef_ETRF_dependency(TIM_TypeDef *p_tim);
-void TIM_set_OCx_mode(TIM_TypeDef *p_tim);
-
-void TIM_enable_OCx_preload(TIM_TypeDef *p_tim);
-void TIM_disable_OCx_preload(TIM_TypeDef *p_tim);
-
-
-err_t TIM_enable_OCx_fast_mode(TIM_TypeDef *p_tim);
-err_t TIM_disable_OCx_fast_mode(TIM_TypeDef *p_tim);
-
-void TIM_set_input_capture_polarity(TIM_TypeDef *p_tim);
-
-enum TIM_ICx_mapping_e {
-	TIM_ICx_MAPPED_ON_TI1,
-	TIM_ICx_MAPPED_ON_TI2,
-	TIM_ICx_MAPPED_ON_TRC,
+enum TIM_OC_Polarity_e {
+    TIM_OC_POL_ACTIVE_HIGH = 0b0,
+    TIM_OC_POL_ACTIVE_LOW  = 0b1
 };
 
-err_t TIM_set_ICx_mapping(TIM_TypeDef *p_tim);
+/**
+ * @brief Set if output compare is active high or low
+ * 
+ * @param p_tim 
+ * @param channel 
+ * @param polarity 
+ * @return err_t 
+ */
+err_t TIM_set_output_compare_polarity(TIM_TypeDef *p_tim, enum TIM_channel_e channel, enum TIM_OC_Polarity_e polarity);
 
-uint32_t TIM_get_ICx_value(TIM_TypeDef *p_tim);
+enum TIM_OCxRef_ETRF_Dep_e {
+	TIM_OCxREF_ETRF_DEPENDENT = 0b0,
+	TIM_OCxREF_ETRF_INDEPENDENT = 0b1
+};
 
+/**
+ * @brief 
+ * 
+ * @param p_tim 
+ * @param channel 
+ * @param dependency 
+ * @return err_t 
+ */
+err_t TIM_set_OCxRef_ETRF_dependency(TIM_TypeDef *p_tim, enum TIM_channel_e channel, enum TIM_OCxRef_ETRF_Dep_e dependency);
+
+enum TIM_OC_Mode_e {
+	TIM_OC_MODE_FROZEN            = 0b000,
+	TIM_OC_MODE_ACTIVE_ON_MATCH   = 0b001,
+	TIM_OC_MODE_INACTIVE_ON_MATCH = 0b010,
+	TIM_OC_MODE_TOGGLE            = 0b011,
+	TIM_OC_MODE_FORCE_INACTIVE    = 0b100,
+	TIM_OC_MODE_FORCE_ACTIVE      = 0b101,
+	TIM_OC_MODE_PWM1              = 0b110,
+	TIM_OC_MODE_PWM2              = 0b111
+};
+
+/**
+ * @brief 
+ * 
+ * @param p_tim 
+ */
+err_t TIM_set_OCx_mode(TIM_TypeDef *p_tim, enum TIM_channel_e channel, enum TIM_OC_Mode_e mode);
+
+err_t TIM_enable_OCx_preload(TIM_TypeDef *p_tim, enum TIM_channel_e channel);
+err_t TIM_disable_OCx_preload(TIM_TypeDef *p_tim, enum TIM_channel_e channel);
+
+err_t TIM_enable_OCx_fast_mode(TIM_TypeDef *p_tim, enum TIM_channel_e channel);
+err_t TIM_disable_OCx_fast_mode(TIM_TypeDef *p_tim, enum TIM_channel_e channel);
+
+enum TIM_IC_Polarity_e {
+	TIM_IC_NONINVERTED_RISING_EDGE = 0b000,
+	TIM_IC_INVERTED_FALLING_EDGE   = 0b001,
+	TIM_IC_RESERVED                = 0b100,
+	TIM_IC_NONINVERTED_BOTH_EDGE   = 0b101,
+};
+/**
+ * @brief Set if output compare is active high or low
+ * 
+ * @param p_tim 
+ * @param channel 
+ * @param polarity 
+ * @return err_t 
+ */
+err_t TIM_set_input_capture_polarity(TIM_TypeDef *p_tim, enum TIM_channel_e channel, enum TIM_IC_Polarity_e polarity);
+
+enum TIM_ICx_mapping_e {
+	TIM_ICx_MAPPED_ON_TI1 = 0b01,
+	TIM_ICx_MAPPED_ON_TI2 = 0b10,
+	TIM_ICx_MAPPED_ON_TRC = 0b11,
+};
+
+err_t TIM_enable_OCx(TIM_TypeDef *p_tim, enum TIM_channel_e channel);
+err_t TIM_disable_OCx(TIM_TypeDef *p_tim, enum TIM_channel_e channel);
+
+err_t TIM_enable_ICx(TIM_TypeDef *p_tim, enum TIM_channel_e channel, enum TIM_ICx_mapping_e mapping);
+err_t TIM_disable_ICx(TIM_TypeDef *p_tim, enum TIM_channel_e channel);
+
+
+
+uint32_t TIM_get_ICx_value(TIM_TypeDef *p_tim, enum TIM_channel_e channel);
+
+/**
+ * @brief Sets the prescaler value for the timer
+ * 
+ * @param p_tim Pointer to the TIM peripheral instance.
+ *              Valid values: TIM1, TIM2, TIM3, ..., TIMx depending on device.
+ * @param prescaler Value to divide TIM_SCK with.
+ */
 void TIM_set_prescaler(TIM_TypeDef *p_tim, uint32_t prescaler);
 
 /**

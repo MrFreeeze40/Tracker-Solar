@@ -23,6 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "gpio.h"
+#include "tim.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -69,7 +70,7 @@ int main(void)
   /* USER CODE BEGIN 1 */
 
   // Enable clocks 
-  RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
+  RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN | RCC_AHB1ENR_GPIOBEN | RCC_AHB1ENR_GPIOCEN;
   RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
   RCC->APB1ENR |= RCC_APB1ENR_PWREN | RCC_APB1ENR_TIM2EN;
 
@@ -102,12 +103,38 @@ int main(void)
   /* USER CODE BEGIN 2 */
   initialize_GPIO();
   GPIO_OutputSetPin(GPIOA, 5);
+
+  if (TIM_is_started(TIM2)) {
+    TIM_stop(TIM2);
+  }
+  TIM_set_prescaler(TIM2, 8400);
+  TIM_set_autoreload(TIM2, 200);
+  TIM_set_counter(TIM2, 0);
+  TIM_enable_auto_reload_buffering(TIM2);
+  TIM_disable_OCx_preload(TIM2, TIM_CHANNEL_2);
+  TIM_set_direction(TIM2, UPCOUNTING);
+  TIM_set_OCx_compared_value(TIM2, TIM_CHANNEL_2, 190);
+  TIM_set_output_compare_polarity(TIM2, TIM_CHANNEL_2, TIM_OC_POL_ACTIVE_HIGH);
+  TIM_set_OCx_mode(TIM2, TIM_CHANNEL_2, TIM_OC_MODE_PWM1);
+  TIM_enable_OCx(TIM2, TIM_CHANNEL_2);
+
+  TIM_start(TIM2);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  uint32_t compared = 190;
   while (1)
   {
+    while (!(GPIOC->IDR & B1_Pin));
+    while ((GPIOC->IDR & B1_Pin));
+    if (compared + 5 > 190) {
+      compared = 180;
+    } else {
+      compared += 5;
+    }
+    TIM_set_OCx_compared_value(TIM2, TIM_CHANNEL_2, compared);
+    
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
