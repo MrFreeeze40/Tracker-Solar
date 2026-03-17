@@ -113,7 +113,7 @@ int main(void)
   TIM_enable_auto_reload_buffering(TIM2);
   TIM_disable_OCx_preload(TIM2, TIM_CHANNEL_2);
   TIM_set_direction(TIM2, UPCOUNTING);
-  TIM_set_OCx_compared_value(TIM2, TIM_CHANNEL_2, 190);
+  TIM_set_OCx_compared_value(TIM2, TIM_CHANNEL_2, 10);
   TIM_set_output_compare_polarity(TIM2, TIM_CHANNEL_2, TIM_OC_POL_ACTIVE_HIGH);
   TIM_set_OCx_mode(TIM2, TIM_CHANNEL_2, TIM_OC_MODE_PWM1);
   TIM_enable_OCx(TIM2, TIM_CHANNEL_2);
@@ -123,15 +123,15 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  uint32_t compared = 190;
+  uint32_t compared = 10;
   while (1)
   {
     while (!(GPIOC->IDR & B1_Pin));
     while ((GPIOC->IDR & B1_Pin));
-    if (compared + 5 > 190) {
-      compared = 180;
+    if (compared - 5 < 10) {
+      compared = 20;
     } else {
-      compared += 5;
+      compared -= 5;
     }
     TIM_set_OCx_compared_value(TIM2, TIM_CHANNEL_2, compared);
     
