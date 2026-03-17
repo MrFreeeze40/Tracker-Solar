@@ -46,6 +46,9 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE 
 Core/Src/tim.c
 Core/Src/gpio.c
+Core/Src/adc.c
+Core/Src/i2c.c
+Core/Src/servo.c
 )
 
 # Add include paths

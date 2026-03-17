@@ -24,6 +24,8 @@
 /* USER CODE BEGIN Includes */
 #include "gpio.h"
 #include "tim.h"
+#include "i2c.h"
+#include "servo.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -104,36 +106,30 @@ int main(void)
   initialize_GPIO();
   GPIO_OutputSetPin(GPIOA, 5);
 
-  if (TIM_is_started(TIM2)) {
-    TIM_stop(TIM2);
-  }
-  TIM_set_prescaler(TIM2, 8400);
-  TIM_set_autoreload(TIM2, 200);
-  TIM_set_counter(TIM2, 0);
-  TIM_enable_auto_reload_buffering(TIM2);
-  TIM_disable_OCx_preload(TIM2, TIM_CHANNEL_2);
-  TIM_set_direction(TIM2, UPCOUNTING);
-  TIM_set_OCx_compared_value(TIM2, TIM_CHANNEL_2, 10);
-  TIM_set_output_compare_polarity(TIM2, TIM_CHANNEL_2, TIM_OC_POL_ACTIVE_HIGH);
-  TIM_set_OCx_mode(TIM2, TIM_CHANNEL_2, TIM_OC_MODE_PWM1);
-  TIM_enable_OCx(TIM2, TIM_CHANNEL_2);
+  Servo_Init();
+  
+  I2C1_Initialize();
 
-  TIM_start(TIM2);
+
+  PMOD_CLS_Clear();
+  PMOD_CLS_SetCursor(0, 0); // Ligne 2 (index 1), Colonne 0
+  PMOD_CLS_Print("Projet Solaire");
+  PMOD_CLS_SetCursor(1, 0); // Ligne 2 (index 1), Colonne 0
+  PMOD_CLS_Print("Initialise OK");
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  uint32_t compared = 10;
+  uint32_t angle = 180;
   while (1)
   {
-    while (!(GPIOC->IDR & B1_Pin));
-    while ((GPIOC->IDR & B1_Pin));
-    if (compared - 5 < 10) {
-      compared = 20;
-    } else {
-      compared -= 5;
+    
+      TIM_set_OCx_compared_value(SERVO_TIM_INSTANCE, SERVO_TIM_CHANNEL, 10);
+      Servo_SetAngle(angle);
+    for (float angle2 = 0.0; angle2 <= 180.0; angle2 += 10.0) {
+        Servo_SetAngle((float)angle2);
+        for(volatile int i=0; i<10000; i++);
     }
-    TIM_set_OCx_compared_value(TIM2, TIM_CHANNEL_2, compared);
     
     /* USER CODE END WHILE */
 
