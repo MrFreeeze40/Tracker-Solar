@@ -73,10 +73,42 @@ uint16_t ADC_get_conversion_value(ADC_TypeDef *p_adc) {
     return p_adc->DR;
 }
 
-void set_alignment(ADC_TypeDef *p_adc, bool right_align) {
+void ADC_set_alignment(ADC_TypeDef *p_adc, bool right_align) {
     if (right_align) {
         p_adc->CR2 |= ADC_CR2_ALIGN;
     } else {
         p_adc->CR2 &= ~ADC_CR2_ALIGN;
     }
+}
+
+void ADC_enable_scan_mode(ADC_TypeDef *p_adc) {
+    p_adc->CR1 |= ADC_CR1_SCAN;
+}
+void ADC_disable_scan_mode(ADC_TypeDef *p_adc) {
+    p_adc->CR1 &= ~ADC_CR1_SCAN;
+}
+
+void ADC_enable_continuous_mode(ADC_TypeDef *p_adc) {
+    p_adc->CR2 |= ADC_CR2_CONT;
+}
+void ADC_disable_continuous_mode(ADC_TypeDef *p_adc) {
+    p_adc->CR2 &= ~ADC_CR2_CONT;
+}
+
+void ADC_select_channel(ADC_TypeDef *p_adc, uint8_t channel, uint8_t rank) {
+    if (rank <= 6) {
+        p_adc->SQR3 &= ~(0x1F << ((rank - 1) * 5));
+        p_adc->SQR3 |= (channel << ((rank - 1) * 5));
+    } else if (rank <= 12) {
+        p_adc->SQR2 &= ~(0x1F << ((rank - 7) * 5));
+        p_adc->SQR2 |= (channel << ((rank - 7) * 5));
+    } else if (rank <= 16) {
+        p_adc->SQR1 &= ~(0x1F << ((rank - 13) * 5));
+        p_adc->SQR1 |= (channel << ((rank - 13) * 5));
+    }
+}
+
+void ADC_set_sequence_length(ADC_TypeDef *p_adc, uint8_t length) {
+    p_adc->SQR1 &= ~ADC_SQR1_L;
+    p_adc->SQR1 |= ((length - 1) << 20);
 }

@@ -24,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include "gpio.h"
 #include "tim.h"
+#include "adc.h"
 #include "i2c.h"
 #include "servo.h"
 /* USER CODE END Includes */
@@ -54,7 +55,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
-
+void intialize_ADC(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -104,6 +105,7 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
   initialize_GPIO();
+  intialize_ADC();
   GPIO_OutputSetPin(GPIOA, 5);
 
   Servo_Init();
@@ -287,6 +289,17 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void initialize_ADC(void) {
+    GPIO_SetPinMode(GPIOA, 1, GPIO_ANALOG_MODE);
+
+    ADC_set_resolution(ADC1, ADC_RESOLUTION_12_BIT);
+    ADC_set_alignment(ADC1, true);
+    ADC_disable_watchdog(ADC1);
+    ADC_enable(ADC1);
+    ADC_set_sequence_length(ADC1, 1);
+    ADC_select_channel(ADC1, 1, 1);
+}
 
 /* USER CODE END 4 */
 
