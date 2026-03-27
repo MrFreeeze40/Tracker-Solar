@@ -1,4 +1,5 @@
 #include "adc.h"
+#include "stm32f446xx.h"
 
 bool ADC_overrun(ADC_TypeDef *p_adc) {
     return (p_adc->SR & ADC_SR_OVR) != 0;
@@ -10,6 +11,22 @@ bool ADC_conversion_started(ADC_TypeDef *p_adc) {
 
 bool ADC_conversion_completed(ADC_TypeDef *p_adc) {
     return (p_adc->SR & ADC_SR_EOC) != 0;
+}
+
+void ADC_clear_overrun_flag(ADC_TypeDef *p_adc) {
+    p_adc->SR = ~ADC_SR_OVR;
+}
+
+void ADC_clear_watchdog_flag(ADC_TypeDef *p_adc) {
+    p_adc->SR = ~ADC_SR_AWD;
+}
+
+void ADC_clear_end_of_conversion_flag(ADC_TypeDef *p_adc) {
+    p_adc->SR = ~ADC_SR_EOC;
+}
+
+void ADC_clear_start_flag(ADC_TypeDef *p_adc) {
+    p_adc->SR = ~ADC_SR_STRT;
 }
 
 bool ADC_is_watchdog_triggered(ADC_TypeDef *p_adc) {
@@ -75,9 +92,9 @@ uint16_t ADC_get_conversion_value(ADC_TypeDef *p_adc) {
 
 void ADC_set_alignment(ADC_TypeDef *p_adc, bool right_align) {
     if (right_align) {
-        p_adc->CR2 |= ADC_CR2_ALIGN;
-    } else {
         p_adc->CR2 &= ~ADC_CR2_ALIGN;
+    } else {
+        p_adc->CR2 |= ADC_CR2_ALIGN;
     }
 }
 

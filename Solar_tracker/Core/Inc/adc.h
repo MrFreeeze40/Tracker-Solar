@@ -11,6 +11,11 @@ bool ADC_conversion_started(ADC_TypeDef *p_adc);
 
 bool ADC_conversion_completed(ADC_TypeDef *p_adc);
 
+void ADC_clear_overrun_flag(ADC_TypeDef *p_adc);
+void ADC_clear_watchdog_flag(ADC_TypeDef *p_adc);
+void ADC_clear_end_of_conversion_flag(ADC_TypeDef *p_adc);
+void ADC_clear_start_flag(ADC_TypeDef *p_adc);
+
 bool ADC_is_watchdog_triggered(ADC_TypeDef *p_adc);
 
 void ADC_enable_overrun_interrupt(ADC_TypeDef *p_adc);

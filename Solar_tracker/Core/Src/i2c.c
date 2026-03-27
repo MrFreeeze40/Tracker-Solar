@@ -1,5 +1,12 @@
 #include "i2c.h"
 #include "gpio.h"
+#include <stdarg.h>
+#include <stdio.h>
+
+// Fonction de délai simple
+void delay_ms(uint32_t ms) {
+    for(volatile uint32_t i = 0; i < ms * 1000; i++); // Approximation pour 84MHz
+}
 
 err_t I2C1_Initialize(void) {
     // 1. Activation des horloges (I2C1 et GPIOB pour PB8/PB9)
@@ -53,30 +60,95 @@ err_t I2C1_WriteByte(uint8_t deviceAddr, uint8_t data) {
     return ERR_NONE;
 }
 
+err_t I2C1_WriteBytes(uint8_t deviceAddr, uint8_t* data, uint8_t length) {
+    if (length == 0) return ERR_NONE;
+
+    // Attente bus libre
+    while (I2C1->SR2 & I2C_SR2_BUSY);
+
+    // Condition START
+    I2C1->CR1 |= I2C_CR1_START;
+    while (!(I2C1->SR1 & I2C_SR1_SB));
+
+    // Envoi Adresse esclave + bit d'écriture (0)
+    I2C1->DR = (deviceAddr << 1);
+    while (!(I2C1->SR1 & I2C_SR1_ADDR));
+    (void)I2C1->SR2; // Lecture SR2 pour acquitter l'adresse
+
+    for (uint8_t i = 0; i < length; i++) {
+        // Envoi de la donnée
+        I2C1->DR = data[i];
+        while (!(I2C1->SR1 & I2C_SR1_TXE));
+    }
+
+    // Condition STOP
+    I2C1->CR1 |= I2C_CR1_STOP;
+
+    return ERR_NONE;
+}
+
 /* --- Implémentation Écran --- */
 
 err_t PMOD_CLS_Clear(void) {
-    I2C1_WriteByte(PMOD_CLS_ADDR, 0x1B); // ESC
-    I2C1_WriteByte(PMOD_CLS_ADDR, '[');
-    I2C1_WriteByte(PMOD_CLS_ADDR, 'j');  // Commande effacer
-    for(volatile int i=0; i<10000; i++); // Délai : l'écran est lent à effacer
+    uint8_t cmd[] = {0x1B, 0X5B, 'j'};
+    I2C1_WriteBytes(PMOD_CLS_ADDR, cmd, 3);
+    delay_ms(2); // Délai pour l'effacement
     return ERR_NONE;
 }
 
 err_t PMOD_CLS_Print(char* str) {
     while(*str) {
         I2C1_WriteByte(PMOD_CLS_ADDR, (uint8_t)*str++);
-        for(volatile int i=0; i<2000; i++); // Petit délai entre chaque caractère
+        delay_ms(1); // Délai entre caractères
     }
     return ERR_NONE;
 }
 
-err_t PMOD_CLS_SetCursor(uint8_t line, uint8_t col) {
-    I2C1_WriteByte(PMOD_CLS_ADDR, 0x1B);
-    I2C1_WriteByte(PMOD_CLS_ADDR, '[');
-    I2C1_WriteByte(PMOD_CLS_ADDR, line + '0');
-    I2C1_WriteByte(PMOD_CLS_ADDR, ';');
-    I2C1_WriteByte(PMOD_CLS_ADDR, col + '0');
-    I2C1_WriteByte(PMOD_CLS_ADDR, 'H');
+err_t PMOD_CLS_erase_line(uint8_t line) {
+    if (line > 1) return ERR_INVALID_PARAM;
+    PMOD_CLS_SetCursor(line, 0);
+    uint8_t cmd[] = {0x1B, 0X5B, '0', 'K'};
+    I2C1_WriteBytes(PMOD_CLS_ADDR, cmd, 4);
+    delay_ms(2); // Délai pour l'effacement
     return ERR_NONE;
+}
+
+err_t PMOD_CLS_SetCursor(uint8_t line, uint8_t col) {
+    uint8_t transmitted_char = 6;
+    if (line > 1) return ERR_INVALID_PARAM;
+    if (col > 15) return ERR_INVALID_PARAM;
+    char line_char = '0' + line;
+    char col_chars[2];
+    uint8_t cmd[] = {0x1B, 0X5B, line_char, ';', col_chars[1], col_chars[0], 'H'};
+    if (col > 9) {
+        transmitted_char++;
+        cmd[4] = '1';
+        cmd[5] = '0' + col % 10;
+        cmd[6] = 'H';
+    } else {
+        cmd[4] = '0' + col % 10;
+        cmd[5] = 'H';
+    }
+
+    I2C1_WriteBytes(PMOD_CLS_ADDR, cmd, transmitted_char);
+    delay_ms(1); // Délai pour le positionnement
+    return ERR_NONE;
+}
+
+
+int PMOD_CLS_printf(const char *fmt, ...) {
+    char buf[16];
+    va_list args;
+    va_start(args, fmt);
+    int len = vsnprintf(buf, sizeof(buf), fmt, args);
+    va_end(args);
+    if (len < 0) return -1;
+    if (len > (int)sizeof(buf)-1) len = sizeof(buf)-1;
+
+    // Envoi en I2C en un seul bloc si disponible
+    // -> si PMOD_CLS_Print existant envoie char par char, c'est OK aussi
+    for (int i = 0; i < len; i++) {
+        I2C1_WriteByte(PMOD_CLS_ADDR, (uint8_t)buf[i]);
+    }
+    return len;
 }
