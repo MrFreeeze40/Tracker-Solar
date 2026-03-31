@@ -14,19 +14,19 @@ bool ADC_conversion_completed(ADC_TypeDef *p_adc) {
 }
 
 void ADC_clear_overrun_flag(ADC_TypeDef *p_adc) {
-    p_adc->SR = ~ADC_SR_OVR;
+    p_adc->SR &= ~ADC_SR_OVR;
 }
 
 void ADC_clear_watchdog_flag(ADC_TypeDef *p_adc) {
-    p_adc->SR = ~ADC_SR_AWD;
+    p_adc->SR &= ~ADC_SR_AWD;
 }
 
 void ADC_clear_end_of_conversion_flag(ADC_TypeDef *p_adc) {
-    p_adc->SR = ~ADC_SR_EOC;
+    p_adc->SR &= ~ADC_SR_EOC;
 }
 
 void ADC_clear_start_flag(ADC_TypeDef *p_adc) {
-    p_adc->SR = ~ADC_SR_STRT;
+    p_adc->SR &= ~ADC_SR_STRT;
 }
 
 bool ADC_is_watchdog_triggered(ADC_TypeDef *p_adc) {
@@ -111,6 +111,20 @@ void ADC_enable_continuous_mode(ADC_TypeDef *p_adc) {
 void ADC_disable_continuous_mode(ADC_TypeDef *p_adc) {
     p_adc->CR2 &= ~ADC_CR2_CONT;
 }
+
+void ADC_enable_discontinuous_mode(ADC_TypeDef *p_adc) {
+    p_adc->CR1 |= ADC_CR1_DISCEN;
+}
+
+void ADC_disable_discontinuous_mode(ADC_TypeDef *p_adc) {
+    p_adc->CR1 &= ~ADC_CR1_DISCEN;
+}
+
+void ADC_set_discontinuous_channel_count(ADC_TypeDef *p_adc, uint8_t count) {
+    p_adc->CR1 &= ~ADC_CR1_DISCNUM;
+    p_adc->CR1 |= ((count - 1) << ADC_CR1_DISCNUM_Pos);
+}
+
 
 void ADC_select_channel(ADC_TypeDef *p_adc, uint8_t channel, uint8_t rank) {
     if (rank <= 6) {

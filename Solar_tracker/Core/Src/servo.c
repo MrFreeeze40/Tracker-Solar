@@ -1,7 +1,7 @@
 #include "servo.h"
 
-const float SERVO_MIN_ANGLE = 0.0f;
-const float SERVO_MAX_ANGLE = 180.0f;
+const float SERVO_MIN_ANGLE = 0;
+const float SERVO_MAX_ANGLE = 180;
 const uint32_t SERVO_MIN_COMPARE_VALUE = 500;
 const uint32_t SERVO_MAX_COMPARE_VALUE = 2500;
 
@@ -35,6 +35,6 @@ void Servo_SetAngle(uint32_t angle) {
     }
 
     //uint32_t compare_value = (uint32_t)((angle / SERVO_MAX_ANGLE) * (SERVO_MAX_COMPARE_VALUE - SERVO_MIN_COMPARE_VALUE) + SERVO_MIN_COMPARE_VALUE);
-    uint32_t compare_value = 500 + (uint32_t)((angle * 2100) / 180);
+    uint32_t compare_value = 175 + ((angle * 2000) / 180) / 100; // Formule linéaire pour convertir l'angle en valeur de comparaison
     TIM_set_OCx_compared_value(SERVO_TIM_INSTANCE, SERVO_TIM_CHANNEL, compare_value);
 }

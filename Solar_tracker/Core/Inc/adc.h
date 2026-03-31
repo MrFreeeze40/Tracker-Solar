@@ -63,11 +63,13 @@ void ADC_disable_scan_mode(ADC_TypeDef *p_adc);
 void ADC_enable_continuous_mode(ADC_TypeDef *p_adc);
 void ADC_disable_continuous_mode(ADC_TypeDef *p_adc);
 
+void ADC_enable_discontinuous_mode(ADC_TypeDef *p_adc);
+void ADC_disable_discontinuous_mode(ADC_TypeDef *p_adc);
+
+void ADC_set_discontinuous_channel_count(ADC_TypeDef *p_adc, uint8_t count);
+
 void ADC_select_channel(ADC_TypeDef *p_adc, uint8_t channel, uint8_t rank);
 
 void ADC_set_sequence_length(ADC_TypeDef *p_adc, uint8_t length);
-
-
-
 
 #endif // __ADC_H__

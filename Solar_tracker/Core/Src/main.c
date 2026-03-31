@@ -123,30 +123,40 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   uint32_t angle = 180;
-      ADC_start_conversion(ADC1);
   while (1)
   {
-    
-    // Lecture de la valeur ADC
-    if (ADC_conversion_completed(ADC1)) {
-      uint16_t adc_value = ADC_get_conversion_value(ADC1);
+    uint16_t adc_ch1 = 0;
+    uint16_t adc_ch2 = 0;
+    char buffer[17];
 
-      // Affichage de la valeur ADC sur l'écran
-      char buffer[16];
-      snprintf(buffer, sizeof(buffer), "ADC: %d", adc_value);
-      PMOD_CLS_erase_line(1);
-      PMOD_CLS_SetCursor(1, 0); // Ligne 2, Colonne 0
-      PMOD_CLS_Print(buffer);
+    // Un seul SWSTART lance la séquence complète : rang 1 puis rang 2.
+    ADC_start_conversion(ADC1);
 
-      // Contrôle du servo en fonction de la valeur ADC
-      angle = (adc_value * 180) / 4095; // Convertir la valeur ADC en angle (0-180)
-      Servo_SetAngle(angle);
-
-      // Relancer la conversion ADC
-      ADC_clear_end_of_conversion_flag(ADC1);
-      for (volatile int i = 0; i < 8400000; i++); // Petit délai pour éviter les lectures trop rapides
-      ADC_start_conversion(ADC1);
+    while (!ADC_conversion_completed(ADC1)) {
     }
+    adc_ch1 = ADC_get_conversion_value(ADC1);
+
+    ADC_start_conversion(ADC1);
+
+    while (!ADC_conversion_completed(ADC1)) {
+    }
+    adc_ch2 = ADC_get_conversion_value(ADC1);
+
+    snprintf(buffer, sizeof(buffer), "C1:%4u C2:%4u", adc_ch1, adc_ch2);
+    PMOD_CLS_erase_line(1);
+    PMOD_CLS_SetCursor(1, 0); // Ligne 2, Colonne 0
+    PMOD_CLS_Print(buffer);
+
+    // Exemple : pilotage du servo avec la moyenne des deux canaux.
+    angle = (((uint32_t)adc_ch1 - (uint32_t)adc_ch2) * 100 / 4095U) * 90 / 100U;
+    Servo_SetAngle(angle);
+    
+    snprintf(buffer, sizeof(buffer), "angle : %lu", (unsigned long)angle);
+    PMOD_CLS_erase_line(0);
+    PMOD_CLS_SetCursor(0, 0); // Ligne 2, Colonne 0
+    PMOD_CLS_Print(buffer);
+
+    for (volatile int i = 0; i < 840000; i++); // Petit délai pour éviter les lectures trop rapides
     
     /* USER CODE END WHILE */
 
@@ -204,13 +214,21 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 
 void initialize_ADC(void) {
-    GPIO_SetPinMode(GPIOA, 1, GPIO_ANALOG_MODE);
+    GPIO_SetPinMode(GPIOA, 1, GPIO_ANALOG_MODE); // ADC1_IN1
+    GPIO_SetPinMode(GPIOA, 2, GPIO_ANALOG_MODE); // ADC1_IN2
 
+    ADC_enable_discontinuous_mode(ADC1);   // une séquence complète par SWSTART
+    ADC_set_discontinuous_channel_count(ADC1, 1);
+    ADC_disable_continuous_mode(ADC1);
+    ADC_enable_scan_mode(ADC1);          // active le scan multi-rangs
     ADC_set_resolution(ADC1, ADC_RESOLUTION_12_BIT);
     ADC_set_alignment(ADC1, true);
     ADC_disable_watchdog(ADC1);
-    ADC_set_sequence_length(ADC1, 1);
-    ADC_select_channel(ADC1, 1, 1);
+
+    ADC_set_sequence_length(ADC1, 2);
+    ADC_select_channel(ADC1, 1, 1);      // rang 1 = PA1
+    ADC_select_channel(ADC1, 2, 2);      // rang 2 = PA2
+    ADC1->CR2 |= ADC_CR2_EOCS;           // EOC après chaque conversion
 
     ADC_enable(ADC1);
 }
